@@ -1,4 +1,5 @@
 Pour les néophytes en [Markdown](https://www.markdownguide.org/basic-syntax/)
+Un outil de prévisualisation utile [StackEdit](https://stackedit.io/) 
 
 # Descriptions des demandes :
 *Contexte client à ne pas prendre en compte, nous sommes ici pour prendre du plaisir/s'entrainer sur des technos qui pourront

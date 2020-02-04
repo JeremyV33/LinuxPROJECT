@@ -225,4 +225,101 @@ Côté client, pour joindre la machine au domaine, utiliser la commande suivante
 Pour connecter un utilisateur du domaine, En mode terminal, entre la commande suivante : 
 
 	 su – inline.corp\\<User>
+	 
+
+
+## Sauvegarde - BorgBackup
+
+C'est un programme de sauvegarde qui fourni une méthode sécurisée pour savegarder des données. 
+
+_Installation des dépendances et  pré requis_
+Pour installer BorgBackup nous devons installer les dépendances : 
+
+	Yum install python3 openssl-devel cython gcc gcc-c++ libzstd libb2 python3-devel libacl-devel
+
+Nous installerons les paquets via les commandes suivantes : 
+Nous téléchargeons et installons tout d'abord le package pip. C'est un utilitaire permettant notamment d'installer des packages Python.
+	curl https://bootstrap.pypa.io/get-pip.py -o
+
+	get-pip.py
+
+
+Virtualenv est un outil pour créer des environnements virtuels Python isolés. virtualenv crée un dossier qui contient tous les exécutables nécessaires pour utiliser les paquets qu’un projet Python pourrait nécessiter. En effet, Borgbackup fonctionne avec Python.
+Nous installerons Virtualenv via la commande suivante : 
+
+Nous allons créer un environnement nommé « borg-env » et utilisant python 3.
+
+	virtualenv --python=python3 borg-env
+
+
+Nous pouvons activer ou désactiver cet environnement à notre guise avec les commandes :
+
+	source borg-env/bin/activate
+
+Ou
+
+	source borg-env/bin/desactivate
+
+Nous finalisons l'installation de BorgBackup : 
+
+	Pip install borgbackup
+
+_Effectuer une sauvegarde_
+
+Sauvegarde locale
+
+Nous allons tout d’abord créer deux dossiers : 1 dépôt et 1 pour effectuer les tests de restauration.
+
+	mkdir -p /data/backup/borg_backup /data/backup/test`
+
+Nous initialisons ensuite le dépôt. Nous allons le déclarer à Borg et chiffrer le dépôt.
+
+	borg init --encryption=keyfile /data/backup/borg_backup
+
+Il faut ensuite choisir une passphrase en plus du chiffrement. Il faudra donc la clé de déchiffrement plus la passphrase pour déchiffrer les sauvegardes.
+	
+_Gestion de la sauvegarde en ligne de commande :_
+
+Pour effectuer une sauvegarde en ligne de commande : 
+
+	borg create -v --stats /data/backup/borg_backup::{hostname}_{now:%d.%m.%Y}
+	
+Pour vérifier toutes les sauvegardes, nous entrons la commande : 
+	
+borg list  /data/backup/borg_backup
+
+Pour consulter une sauvegarde : 
+
+	 borg list  /data/backup/borg_backup::localhost_dd.mm.yyyy
+
+Pour restaurer une sauvegarde : 
+
+	 borg extract  /data/backup/borg_backup:: localhost_dd.mm.yyyy
+
+_Paramétrage pour la sauvegarde distante_
+
+Pour faire de la sauvegarde distante il faut que le client ait borgbackup ainsi qu’openssh-server d’installé. En effet le client initie une connexion ssh avec la machine hébergeant le dépôt distant. Borg sait nativement gérer les connexions ssh.
+
+Créons un utilisateur pour borgbackup sur le serveur, et générons une clef SSH.
+
+	useradd borg --create-home --home-dir /var/lib/borg-backups/
+
+	ssh-keygen
+Copiez la clef sur la machine cliente au serveur Borg.
+Nous allons maintenant initier le dépôt distant sur le serveur : 
+
+	borg init --encryption=keyfile **borg@borg:**/var/lib/borg-backups/
+
+Les commandes sont trés légèrement différentes par rapport à la sauvegarde locale, du fait de la connexion avec une machine distante. Il faut rajouter le compte avec lequel nous réalisons la sauvegarde (borg) ainsi que le nom d’hôte ou l’ip de la machine (dans le cas actuel le hostname est « borg »).
+
+Pour effectuer une sauvegarde à distance de notre serveur web nous NGINX, nous pouvons effectuer la commande suivante : 
+
+	borg create -v –stats [borg@borg:/var/lib/borg-backups/::{hostname}_{now:%d.%m.%Y}](mailto:borg@borg:/var/lib/borg-backups/::%7bhostname%7d_%7bnow:%25d.%25m.%25Y%7d) / usr/share/nginx/html /etc/nginx
+
+
+
+
+
+
+	 
 

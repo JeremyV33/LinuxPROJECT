@@ -1,0 +1,17 @@
+<h2>Prérequis :</h2>
+
+Service SSH configuré sur chaque serveur à joindre via le serveur de rebond
+Echanges de clefs SSH effectués entre les différents serveurs
+
+Explications : 
+
+
+
+
+
+
+o	Host SRV3.localdomain --> Nom d’hôte de la machine déclaré dans Hostname
+o	Hostname 192.168.2.10 --> IP Fixe de l’Hôte mentionné juste au-dessus
+o	User pdartois #Utilisateur autorisé à se connecter 
+o	ForwardAgent yes #Spécifie si la connexion à l'agent d'authentification (s'il existe) doit être redirigée vers la machine distante. L'argument pour ce mot-clef est « yes » ou « no ». Par défaut « no ». 
+o	ProxyCommand ssh SRV3.localdomain -W %h:22 #Spécifie la commande à utiliser pour se connecter au serveur SRV3. Où %h:22 signifie  qu'on atteindra l'hôte via le port 22

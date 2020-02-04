@@ -174,7 +174,7 @@ Configuration interfaces réseau client
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73642963-f2af1d00-4672-11ea-89fb-f1e540b26b66.png)
 
-_SSH_
+## Serveur de rebond SSH
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73643021-08bcdd80-4673-11ea-89ea-789565c4300a.png)
 

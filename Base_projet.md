@@ -123,15 +123,14 @@ _Installation_
 
 ![alt tag](https://user-images.githubusercontent.com/58468543/73642897-d7dca880-4672-11ea-8118-38c315dfee4c.png)
 
-1ere sélection des services après l’installation de la plateforme. Ici nous nous servirons de Zentyal en tant que serveur DNS, LDAP, Contrôleur de domaine et DHCP. Il y aura toujours la possibilité d’installer d’autres services par la suite.
+1ere sélection des services après l’installation de la plateforme. Ici nous nous servirons de Zentyal en tant que serveur DNS, LDAP, Contrôleur de domaine et serveur DHCP. Il y aura toujours la possibilité d’installer d’autres services par la suite car la plateforme propose tout un panel de services.
 
 *Configuration matérielle de la machine :
   * -	20 GB stockage
   * -	1024 Mo RAM
-  * -	1 carte réseau NAT pour accès à internet au démarrage 
-  * -	1 carte réseau pour joindre les clients ubuntu. Cette carte réseau permettra également de délivrer des adresses IP 
-  * -	Dynamiquement via le protocole DHCP. 
-  * -	1 carte réseau pour joindre les serveurs de l’infrastructure 
+  * -	1 carte réseau NAT pour accès à internet au démarrage. 
+  * -	1 carte réseau pour joindre les clients, via laquelle le protocole DHCP transitera pour allouer dynamiquement des adresses IP aux clients.
+  * -	1 carte réseau pour joindre les serveurs de l’infrastructure. 
   
 ![alt tag](https://user-images.githubusercontent.com/58468543/73642909-dc08c600-4672-11ea-8498-16022cd49125.png)
 
@@ -160,17 +159,17 @@ Configuration DHCP via les interfaces réseau du serveur. 1 Seule interface dél
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73643000-00fd3900-4673-11ea-9555-ef9b9284b8f6.png)
 
 
-Configuration d’une plage DHCP sur l’interface qui communiquera avec les clients. 
+Configuration d’une plage DHCP sur l’interface qui communiquera avec les clients.  Nous configurerons la plage de 192.168.2.50 à 192.168.2.253 (192.168.2.254 étant la passerelle).
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73643009-035f9300-4673-11ea-8046-32d6ad918534.png)
 
-Configuration interfaces réseau
+Configuration des interfaces réseau. 
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73642958-efb42c80-4672-11ea-9e76-e1007f9830c9.png)
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73642963-f2af1d00-4672-11ea-89fb-f1e540b26b66.png)
 
-Configuration interfaces réseau client
+Configuration de l'interface réseau client reliée au client. Cette interface délivrera les adresses IP de la plage configurée aux clients présents sur le même sous réseau que l'interface eth1.
 
 ![alt_tag](https://user-images.githubusercontent.com/58468543/73642963-f2af1d00-4672-11ea-89fb-f1e540b26b66.png)
 
@@ -197,8 +196,8 @@ Configuration du nom d’hôte de la machine cliente dans le fichier /etc/hostna
 Ici : 
 
 	inl-cli03.inline.corp
-
-Renseignement du nom de domaine et de son adresse IP dans le fichier /etc/resolv.conf :
+	
+Nous renseignons le nom de domaine et  son adresse IP dans le fichier /etc/resolv.conf :
 
 
 	search inline.corp
@@ -214,6 +213,8 @@ Le paquet fournira les outils nécessaires pour intégrer le domaine Zentyal.
 	sudo yum install krb5-workstation
 
 Le paquet Kerberos Workstation client fournira une authentification chiffrée basée sur Key Distribution Center (KDC).
+
+Pour lister les royaumes disponibles, 
 
 Côté client, pour joindre la machine au domaine, utiliser la commande suivante: 
 

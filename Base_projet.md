@@ -500,6 +500,10 @@ Nous vérifions ensuite s'il n'y a pas d'erreurs dans Nagios :
 
 	/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
 
+Si tout va bien, la commande doit nous envoyer ce résultat : 
+
+![alt_tag](https://user-images.githubusercontent.com/51946423/73880418-b3452400-485e-11ea-82c2-313aec539b96.png)
+
 Puis nous redémarrons le service : 
 
 	sudo systemctl restart nagios

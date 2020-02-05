@@ -395,6 +395,82 @@ Pour effectuer une sauvegarde à distance de notre serveur web nous NGINX, nous 
 	borg create -v –stats [borg@borg:/var/lib/borg-backups/::{hostname}_{now:%d.%m.%Y}](mailto:borg@borg:/var/lib/borg-backups/::%7bhostname%7d_%7bnow:%25d.%25m.%25Y%7d) / usr/share/nginx/html /etc/nginx
 
 
+##  Nagios
+
+Nous installerons  l'outil de supervision sur un serveur dédié sous CentOS7.
+
+Avant d'installer Nagios, nous installerons les pre requis : 
+
+	sudo yum -y install httpd php gcc glibc glibc-common wget perl gd gd-devel unzip zip
+
+Nous créons ensuite un utilisateur _nagios_ et un group _nagcmd_ : 
+
+	sudo useradd nagios
+	sudo groupadd nagcmd
+	sudo usermod -a -G nagcmd nagios
+	sudo usermod -a -G nagcmd apache
+
+Puis nous téléchargeons et décompressons les dossier de la version 4.4.3 de Nagios : 
+
+	cd /tmp/
+	sudo wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.3.tar.gz
+	sudo tar -zxvf nagios-4.4.3.tar.gz
+	cd /tmp/nagios-4.4.3
+
+Nous compilons ensuite l'installation de Nagios : 
+
+sudo ./configure --with-nagios-group=nagios --with-command-group=nagcmd
+
+Et nous l'installons : 
+
+	sudo make all
+	sudo make install
+	sudo make install-init
+	sudo make install-config
+	sudo make install-commandmode
+
+Nous passons ensuite à l'installation de l'interface web de la plateforme : 
+
+	sudo make install-webconf
+Le thème : 
+
+	sudo make install-exfoliation
+
+Nous créons ensuite l'utilisateur nagiosadmin qui nous servira à nous connecter à l'interface web de Nagios : 
+
+	sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+
+Nous redémarrons le service Apache pour que les paramètres prennent effet : 
+
+	sudo systemctl restart httpd
+	sudo systemctl enable httpd
+
+Nous téléchargeons les plugins : 
+
+	cd /tmp
+	sudo wget https://nagios-plugins.org/download/nagios-plugins-2.2.1.tar.gz
+	sudo tar -zxvf nagios-plugins-2.2.1.tar.gz
+	cd /tmp/nagios-plugins-2.2.1/
+
+Puis nous les compilons et les installons : 
+
+	./configure --with-nagios-user=nagios --with-nagios-group=nagios 
+	make
+	make install
+
+Nous vérifions ensuite si les fichiers de configuration comportent des erreurs.
+Si tout s'est bien passé, la commande renvoie ce résultat : 
+
+![alt_tag](https://user-images.githubusercontent.com/51946423/73880418-b3452400-485e-11ea-82c2-313aec539b96.png)
+
+Nous pouvons alors démarrer le service Nagios et autoriser l'accès au serveur web via le firewall : 
+
+	sudo service nagios start 
+	sudo firewall-cmd --permanent --add-service=http
+	sudo firewall-cmd --reload
+
+Maintenant nous pouvons accéder à l'interface web de Nagios, avec le compte nagiosadmin.
+
 # Monitorer Zentyal avec NRPE
 
 NRPE (Nagios Remote PluginExecutor) est un "Addon" pour Nagios qui permet d'exécuter des plugins sur un serveur (Linux/Unix ou Windows) distant. Ce plugin permettra de monitorer les ressources local d'une machine distante (CPU, RAM, Disques ...)

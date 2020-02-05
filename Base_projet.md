@@ -126,7 +126,66 @@ Ensuite nous installons le Serveurs et le client MariaDB avec
 	sudo systemctl start mariadb
 	sudo systemctl status mariadb
 	
-_Création d'utilisateur_
+_Login sur MariaDB_
+
+Pour se connecter à MariaDB nous utilisons la commande de base qui nous permet de lancer MariaDB en root avec le mot de passe précisé plus tôt avec le script de sécurisation MySQL  :
+
+	mysql -u root -p
+	
+_Diverses utilisation de la table SQL_
+
+Pour créer une base de donnée SQL : 
+
+	CREATE DATABASE WebServiceSave;
+	
+Et ensuite pour vérifier que la base est bien présente : 
+	
+	SHOW DATABASES;
+	
+et vous aurez une réponse du style : 
+
+	+--------------------+
+	| Database           |
+	+--------------------+
+	| WebServiceSave     |
+	| information_schema |
+	| mysql              |
+	| performance_schema |
+	+--------------------+
+
+Les bases de donnée information_schéma, mysql et performance_schema sont des bases installée par SQL lors de l'installation et elles stockent des informations à propos de toutes les bases de données, la configuration systeme, les utilisateurs, les authorisations ainsi que d'autres importantes données.
+
+Pour supprimer une base de donnée SQL :
+
+	DROP DATABASE WebServiceSave;
+	
+_Gestion des utilisateurs SQL_
+
+Nous allons créer l'utilisateur AdminBorg capable de se connecter sur localhost avec le mot de passe à définir ensuite et remplacer 
+
+	CREATE USER 'AdminBorg'@'localhost' IDENTIFIED BY 'user_password';
+	
+Pour changer le mot de passe d'un utilisateur MySQL nous utilisons cette commande :
+
+	
+
+Pour lister les utilisateurs présent sur le MySQL nous utilisons ceci : 
+
+	SELECT user, host FROM mysql.user;
+	
+Nous pouvons avoir le résultat suivant 
+
+	+-----------+-----------------------+
+	| user      | host                  |
+	+-----------+-----------------------+
+	| root      | 127.0.0.1             |
+	| root      | ::1                   |
+	| AdminBorg | localhost             |
+	| root      | localhost             |
+	| root      | localhost.localdomain |
+	+-----------+-----------------------+
+	5 rows in set (0.000 sec)
+
 
 ## Zentyal
 

@@ -287,6 +287,11 @@ Le paquet fournira les outils nécessaires pour intégrer le domaine Zentyal.
 
 	sudo yum install krb5-workstation
 
+Nous passons ensuite à la modification du fichier /etc/krb5.conf afin de déclarer notre domaine : 
+
+![alt_tag](https://user-images.githubusercontent.com/51946423/73828583-d392c580-4801-11ea-8420-2149d3d45a6b.png)
+
+
 Le paquet Kerberos Workstation client fournira une authentification chiffrée basée sur Key Distribution Center (KDC).
 
 Pour lister les royaumes disponibles, 

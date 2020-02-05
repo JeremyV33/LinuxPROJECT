@@ -590,8 +590,85 @@ Nous vérifions ensuite la bonne intégration de l'hôte et du service que nous 
 
 ![alt_tag](https://user-images.githubusercontent.com/51946423/73879848-76c4f880-485d-11ea-9621-d535496a749d.png)
 
+#NFS
 
+_Présentation_
 
+NFS ou Network File System est un service de partage de fichiers en réseau entre systèmes Unix. Il fait partie de la couche application du modèle OSI et utilise le protocole RPC.
 
-	 
+Dans notre situation il va nous permettre de partager des dossiers propres à chaque machine (cliente ou serveur) de notre infrastructure. Ces dossiers seront montées sur les dites machines et serviront de dêpot de sauvegarde Borgbackup. Les sauvegardes seront vues comme des sauvegardes locales par le système mais seront en fait des sauvegardes distantes et le serveur NFS hébergera toutes nos sauvegardes. 
 
+_Prérequis_
+
+NFSv4 utilise le port 2049 en TCP. Il faut donc songer à ouvrir ce port dans le pare-feu.
+
+	firewall-cmd --zone=public --add-port=2049/tcp
+
+_Serveur NFS_
+
+Pour installer le serveur NFS nous installons le paquet suivant :
+
+	sudo yum install nfs-utils
+	
+_Configuration_
+
+Nous commençons par rajouter un disque à notre serveur via l’interface VmWare. Celui-ci doit être d’une taille suffisante pour accueillir le volume de données à sauvegarder. 
+
+Après avoir configuré une partition unique sdb1 prenant la totalité du disque et formaté celle-ci en ext4, nous monterons celle-ci dans /mnt/backup en persistant (via fstab) et nous créerons des dossiers au nom de chaque machine de l’infrastructure. 
+Il faut maintenant édité les fichiers de configuration NFS. 
+Il faut renseigner le domaine local dans /etc/idmapd.conf. Pour cela décommentez la ligne « domain= » et insérez le nom du domaine à la suite.
+
+Editons ensuite /etc/exports et y rajouter autant de lignes que souhaitées. 
+
+	/mnt/backup 192.168.234.133/32(rw,async,no_subtree_check
+	
+Où /mnt/backup est le dossier du serveur à partager, 192.168.234.133/32 est le sous-réseau des clients qui monteront le dossier (une seule ip ici) , rw correspond aux droits de lecture et d’écriture, async à une écriture asynchrone et no_subtree_check neutralise la vérification des sous-répertoires.
+
+Passons à l’édition du fichier /etc/hosts.allow où nous rajouterons tous les sous réseaux des clients qui monterons des partages NFS. Ce fichier est en fait une liste blanche des connexions autorisées à ce serveur. Tout ce qui n’y figure pas n’est pas autorisé. 
+
+Autorisation et démarrage des services 
+
+	sudos ystemctl enable rpcbind
+	sudo systemctl enable nfs-server
+	sudo systemctl enable nfs-lock
+	sudo systemctl enable nfs-idmap
+	sudo systemctl start rpcbind
+	sudo systemctl start nfs-server
+	sudo systemctl start nfs-lock
+	sudo systemctl start nfs-idmap
+
+Pare-feu
+
+	sudo firewall-cmd --permanent --zone=public --add-port=111/tcp
+	sudo firewall-cmd --permanent --zone=public --add-port=111/udp
+	sudo firewall-cmd --permanent --zone=public --add-port=2049/tcp
+	sudo firewall-cmd --permanent --zone=public --add-port=2049/udp
+	sudo firewall-cmd --permanent --zone=public --add-port=20048/tcp
+	sudo firewall-cmd --permanent --zone=public --add-port=20048/udp
+	sudo firewall-cmd –reload
+
+_Client NFS_
+
+La configuration suivante est à faire sur toutes les machines de l’infrastructure.
+
+Le paquet à déployer est le suivant
+
+	sudo yum install nfs-utils
+	
+Pour configurer le NFS nous devons éditer le fichier /etc/idmapd.conf de la même manière que pour le serveur
+
+Nous autorisons et démarrons le système rcpbind.
+
+	sudo systemctl enable rpcbind
+	sudo systemctl start rpcbind
+	
+Nous créons le dossier qui accueil le partage réseau et le montons 
+
+	Mkdir /mnt/backup
+	sudo mount -t nfs 192.168.234.134:/mnt/backup/inl-web01 /mnt/backup
+
+Nous montons le disque en NFS3 car il gère plus facilement les utilisateurs. Cette différence est visible par le -t dans la commande mount.
+
+	vi /ect/fstab et rajouter “192.168.234.134:/mnt/backup/inl-web01 /mnt/backup nfs defaults,_netdev 0 0”
+	
+L’option _netdev indique au système qu’il s’agit d’un disque réseau et qu’il doit au moins attendre d’être connecté pour le monter.

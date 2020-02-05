@@ -32,7 +32,7 @@ _Infra en 2 partie LAN/WAN :_
   * HTTP
   * BDD
 
-### Techno choisit pour à mettre en place pour le projet Linux
+### Techno à mettre en place pour le projet Linux
 
 Ici je détail les différentes techno que nous allons étudier/mettre en place pour ce labo
 * __Minimum attendu :__
@@ -116,12 +116,17 @@ Ensuite nous installons le Serveurs et le client MariaDB avec
 
 	sudo yum install MariaDB-server MariaDB-client
  
+ Derniere étape de l'installation, nous lançons le script de sécurisation sql
+
+	sudo mysql_secure_installation
+	
  A chaque étape démarré, authorisé et vérifier le status de MariaDB.
 
 	sudo systemctl enable mariadb
 	sudo systemctl start mariadb
 	sudo systemctl status mariadb
-
+	
+_Création d'utilisateur_
 
 ## Zentyal
 

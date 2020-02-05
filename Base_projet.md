@@ -395,6 +395,120 @@ Pour effectuer une sauvegarde à distance de notre serveur web nous NGINX, nous 
 	borg create -v –stats [borg@borg:/var/lib/borg-backups/::{hostname}_{now:%d.%m.%Y}](mailto:borg@borg:/var/lib/borg-backups/::%7bhostname%7d_%7bnow:%25d.%25m.%25Y%7d) / usr/share/nginx/html /etc/nginx
 
 
+# Monitorer Zentyal avec NRPE
+
+NRPE (Nagios Remote PluginExecutor) est un "Addon" pour Nagios qui permet d'exécuter des plugins sur un serveur (Linux/Unix ou Windows) distant. Ce plugin permettra de monitorer les ressources local d'une machine distante (CPU, RAM, Disques ...)
+Nous installerons NRPE sur le serveur Zentyal qui est notre serveur LDAP/DNS/DHCP.
+N'oubliez pas d'installer le service Pare-feu sur Zentyal, pour avoir accès aux outils Iptables.
+
+Nous installons le paquet : 
+
+	sudo apt-get install -y nagios-nrpe-server nagios-plugins
+
+Nous éditons ensuite le fichier de configuration _nrpe.cfg_, pour y ajouter l'adresse IP de notre serveur de supervision à la ligne suivante : 
+
+	sudo nano /etc/nagios/nrpe.cfg
+	allowed_hosts=192.168.1.1
+
+Ce fichier contient également la liste des commandes de base pour monitorer les services et les composants des machines distantes.
+Nous pouvons donc tester une commande, celle pour contrôler le nombre de processus, en la rentrant dans le terminal, avec des arguments : 
+
+	/usr/lib/nagios/plugins/check_procs -w 200 -c 210
+
+Qui nous renvoie le résultat : 
+
+	PROCS OK: 196 processes | procs=196;200;210;0;
+
+Nous pouvons ensuite redémarrer le service nrpe : 
+
+	sudo systemctl restart nagios-nrpe-server
+
+Nous ouvrons ensuite le port TCP 5666 sur le pare-feu de Zentyal : 
+
+	iptables -I INPUT -p tcp --dport 5666 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+
+	iptables -I OUTPUT -p tcp --sport 5666 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+
+Côté serveur Nagios, sous CentOS7 : 
+
+Nous réiterons les mêmes opérations que pour le client, à savoir : 
+
+Configurer le dépôt EPEL : 
+
+	rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+Installer le plugin NRPE : 
+
+	 yum -y install nagios-plugins-nrpe
+
+Nous allons ensuite modifier le fichier nagios.cfg pour spécifier le chemin des serveurs à monitorer : 
+
+	 vi /usr/local/nagios/etc/nagios.cfg
+
+Créer la ligne (ou la décommenter si elle est déjà présente) : 
+
+	cfg_dir=/usr/local/nagios/etc/servers
+
+Et créer le dossier : 
+
+	sudo mkdir /usr/local/nagios/etc/servers
+
+Nous devons ensuite ajouter une nouvelle commande _check_nrpe_ au fichier _command.cfg_ pour pouvoir monitorer la machine distante : 
+
+	sudo vi /usr/local/nagios/etc/objects/commands.cfg
+
+Nous ajoutons les lignes suivantes : 
+
+	# .check_nrpe. command definition
+	
+	define command{
+	command_name check_nrpe
+	command_line /usr/lib64/nagios/plugins/check_nrpe -H $HOSTADDRESS$ -t 30 -c $ARG1$
+	}
+Nous ajoutons ensuite un hôte sur le serveur de supervision : 
+Nous créons le fichier _inl-dc01.cfg_
+
+	sudo touch /usr/local/nagios/etc/servers/inl-dc01.cfg
+
+Nous pouvons créer une première configuration, la déclaration de l'hôte : 
+
+	define host{
+
+            use                     linux-server
+            host_name               inl-dc01.inline.corp
+            alias                   inl-dc01.inline.corp
+            address                 192.168.1.1
+
+	}
+
+Ensuite, nous pouvons déclarer un service : 
+
+define service {
+
+    use                     local-service           ; Name of service template to use
+    host_name               inl-dc01.inline.corp
+    service_description     Root Partition
+    check_command           check_local_disk!20%!10%!/
+	}
+
+
+Nous pouvons éditer ce fichier en utilisant les templates disponibles dans le fichier : 
+
+	/usr/local/nagios/etc/objects/templates.cfg
+
+Nous vérifions ensuite s'il n'y a pas d'erreurs dans Nagios : 
+
+	/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+Puis nous redémarrons le service : 
+
+	sudo systemctl restart nagios
+
+Nous vérifions ensuite la bonne intégration de l'hôte et du service que nous venons de configurer : 
+
+![alt_tag](https://user-images.githubusercontent.com/51946423/73879790-5e54de00-485d-11ea-9c06-6c0f550877e9.png)
+
+![alt_tag](https://user-images.githubusercontent.com/51946423/73879848-76c4f880-485d-11ea-9621-d535496a749d.png)
 
 
 
